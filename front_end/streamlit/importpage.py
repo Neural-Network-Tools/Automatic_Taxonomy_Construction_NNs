@@ -126,6 +126,9 @@ def import_page():
             with col2:
                 use_user_owl = st.checkbox("Check to append to ontology", value=True)
 
+        st.markdown("<h1 style='font-family: Arial, sans-serif; color: #fb8c00;'>Upload From Hugging Face</h1>", unsafe_allow_html=True)
+        huggingface_id = st.text_input("Enter the Hugging Face id of the model:")
+        
         # Check if `main` is already running
         if "is_main_running" not in st.session_state:
             st.session_state.is_main_running = False

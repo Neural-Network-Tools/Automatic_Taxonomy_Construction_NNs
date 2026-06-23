@@ -2,7 +2,7 @@
 # from utils.doc_chunker import semantically_chunk_documents
 # chunked_docs = semantically_chunk_documents(documents)
 from langchain_experimental.text_splitter import SemanticChunker
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def semantically_chunk_documents(documents, embedder) -> list:
     """

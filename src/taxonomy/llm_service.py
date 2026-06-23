@@ -2,14 +2,14 @@ import re
 from langchain_ollama import ChatOllama
 from langchain_ollama.llms import OllamaLLM
 from langchain_core.output_parsers import JsonOutputParser
-from langchain.output_parsers import PydanticOutputParser
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain_ollama import OllamaEmbeddings
 from langchain_core.prompts import ChatPromptTemplate,PromptTemplate
-from langchain_community.vectorstores import Neo4jVector
+from langchain_neo4j import Neo4jVector
 from langchain_core.output_parsers import PydanticOutputParser
 import requests
 from bs4 import BeautifulSoup
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 from langchain_community.document_loaders import UnstructuredPDFLoader,PyPDFLoader
 from graphviz import Source
 import json
@@ -25,7 +25,7 @@ if parent_dir not in sys.path:
 from src.taxonomy.criteria import Criteria, SearchOperator,HasLoss, TypeOperator, OutputCriteria
 from typing import List
 from pydantic import BaseModel, Field
-from langchain.output_parsers import OutputFixingParser
+from langchain_classic.output_parsers import OutputFixingParser
 from src.taxonomy.create_taxonomy import *
 from src.taxonomy.visualizeutils import visualizeTaxonomy
 

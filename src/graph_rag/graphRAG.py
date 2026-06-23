@@ -6,7 +6,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_neo4j import Neo4jGraph
 from langchain_community.chat_models import ChatOllama
 #from langchain_experimental.graph_transformers import LLMGraphTransformer
-from langchain_community.vectorstores import Neo4jVector
+from langchain_neo4j import Neo4jVector
 from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings
 from langchain_experimental.llms.ollama_functions import OllamaFunctions
@@ -14,7 +14,7 @@ from langchain_experimental.llms.ollama_functions import OllamaFunctions
 from langchain_neo4j import Neo4jGraph
 from neo4j import GraphDatabase
 
-from langchain.prompts import PromptTemplate # template prompts
+from langchain_core.prompts import PromptTemplate # template prompts
 from langchain_core.prompts import PromptTemplate
 from langchain_neo4j import GraphCypherQAChain
 #from langchain_experimental.graph_transformers import LLMGraphTransformer # model Import

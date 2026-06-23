@@ -11,10 +11,11 @@ def chat_page():
         from neo4j import GraphDatabase
         from langchain_experimental.graph_transformers import LLMGraphTransformer
         from langchain_ollama.llms import OllamaLLM
-        from langchain.prompts import PromptTemplate
-        from langchain.chains import LLMChain
+        from langchain_core.prompts import PromptTemplate
+        #from langchain.chains import LLMChain
         from langchain_neo4j import GraphCypherQAChain
         from front_end.instances import list_of_class_instances
+        from langchain_core.output_parsers import StrOutputParser
 
         # Helper to remove internal thoughts
         def strip_think_block(text):
@@ -70,7 +71,8 @@ def chat_page():
         VALIDATION_PROMPT = PromptTemplate(
             input_variables=["question"], template=QUESTION_VALIDATION_TEMPLATE
         )
-        validation_chain = LLMChain(llm=llm, prompt=VALIDATION_PROMPT)
+        validation_chain = VALIDATION_PROMPT | llm | StrOutputParser()
+        #validation_chain = LLMChain(llm=llm, prompt=VALIDATION_PROMPT)
 
         # Cypher generation prompt
         CYPHER_GENERATION_TEMPLATE = f"""
@@ -189,7 +191,7 @@ def chat_page():
             try:
                 # Step 1: Validate question
                 with st.spinner("Validating your input..."):
-                    validation_response = validation_chain.run({"question": user_input}).strip()
+                    validation_response = validation_chain.invoke({"question": user_input}).strip()
 
                 with st.chat_message("assistant"):
                     st.markdown(f"<div style='font-size:20px; font-family:Arial;'>{validation_response}</div>",

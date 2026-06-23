@@ -20,7 +20,7 @@ def chat_page():
 
     llm_transformer = LLMGraphTransformer(llm=llm)
 
-    from langchain.prompts import PromptTemplate
+    from langchain_core.prompts import PromptTemplate
     from langchain_core.prompts import PromptTemplate
     from langchain_neo4j import GraphCypherQAChain
 

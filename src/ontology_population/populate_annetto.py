@@ -1664,7 +1664,7 @@ A **subnetwork** is a block that\n
                     f"{self.ann_path}/*pdf*.json"
                 )  # Grabs all pdf doc json's
                 json_code_paths = glob.glob(
-                    f"{self.ann_path}/*code_doc*.json"
+                    f"{self.ann_path}/*code_*.json" # code_doc originally
                 )
                 json_paths = json_pdf_paths + json_code_paths
                 if not json_paths:

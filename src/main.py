@@ -91,23 +91,25 @@ def main(ann_name: str, ann_path: str, use_user_owl: bool = True, test_input_ont
     ann_pdfs = glob.glob(os.path.join(ann_path,"*.pdf"))
     if not ann_pdfs:
         logger.error(f"No PDF files found in {ann_path}.")
-        raise PDFError(
-        message="No PDFs provided. Please provide a PDF.",
-        code="PDF_NOT_FOUND",
-        context={"datatype": "422", "property": "pdf"})
+        #raise PDFError(
+        #message="No PDFs provided. Please provide a PDF.",
+        #code="PDF_NOT_FOUND",
+        #context={"datatype": "422", "property": "pdf"})
     # If ann_path has multiple pdfs, use the first one and log a warning
     # NOTE: Can only handle one pdf for now. Assumes a single ANN can't have multiple papers 
-    if len(ann_pdfs) > 1:
-        logger.warning(f"Multiple PDF files found in {ann_path}. Using the first one.")
-        ann_pdf = ann_pdfs[0]
-    else:
-        ann_pdf = ann_pdfs[0]
+    if len(ann_pdfs) > 0:
+        if len(ann_pdfs) > 1:
+            logger.warning(f"Multiple PDF files found in {ann_path}. Using the first one.")
+            ann_pdf = ann_pdfs[0]
+        else:
+            ann_pdf = ann_pdfs[0]
 
-    # TODO: Use llm query to verify if the pdf is about a NN architecture
+        # TODO: Use llm query to verify if the pdf is about a NN architecture
 
-    # Extract text from PDF
-    extract_filter_pdf_to_json(ann_pdf, ann_path)
-    logger.info(f"Extracted text from {ann_pdf} to JSON.")
+        # Extract text from PDF
+        
+            extract_filter_pdf_to_json(ann_pdf, ann_path)
+            logger.info(f"Extracted text from {ann_pdf} to JSON.")
 
     # # Extract code (give file path, glob is processed in the function), if any
     pytorch_module_names: List[str] = []

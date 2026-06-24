@@ -6,7 +6,11 @@ from torchvision import models as tmodels
 from collections import defaultdict
 
 def extract_graph(model) -> dict:
-    traced = symbolic_trace(model)
+    if hasattr(model, "dummy_inputs"):
+        model = model.to('cpu')
+        traced = torch.export.export(model,args=(),kwargs=model.dummy_inputs, strict=False).graph_module
+    else:
+        traced = symbolic_trace(model)
     computeGraph = {
         "total_num_params": 0,
         "graph": {"node": []}

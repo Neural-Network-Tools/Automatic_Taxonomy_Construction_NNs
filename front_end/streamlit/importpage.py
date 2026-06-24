@@ -6,6 +6,7 @@ import os
 from utils.exception_utils import *
 
 from utils.logger_util import get_logger
+from utils.huggingface_utils import get_model, download_model_and_make_source_code
 from neo4j_connection import get_neo4j_credentials, get_driver
 
 logger = get_logger("importpage", max_logs=3)
@@ -101,6 +102,7 @@ def import_page():
 
         def handle_file(uploaded_file, save_path):
             file_path = os.path.join(save_path, uploaded_file.name)
+            print(uploaded_file)
             with open(file_path, 'wb') as f:
                 f.write(uploaded_file.getvalue())
             success_placeholder = st.empty()
@@ -109,14 +111,15 @@ def import_page():
             success_placeholder.empty()
 
         st.markdown("<h1 style='font-family: Arial, sans-serif; color: #fb8c00;'>Upload</h1>", unsafe_allow_html=True)
-
+        
+        uploaded_files = []
         with st.form(key='file_upload_form'):
-            uploaded_files = st.file_uploader(
+            uploaded_files += st.file_uploader(
                 "Choose files",
                 type=["py", "pdf", "pb", "onnx"],
                 accept_multiple_files=True
             )
-            
+            print(uploaded_files)
             # Create columns to place the checkbox and the submit button next to each other
             col1, col2 = st.columns([3, 1])
             
@@ -127,8 +130,17 @@ def import_page():
                 use_user_owl = st.checkbox("Check to append to ontology", value=True)
 
         st.markdown("<h1 style='font-family: Arial, sans-serif; color: #fb8c00;'>Upload From Hugging Face</h1>", unsafe_allow_html=True)
+
         huggingface_id = st.text_input("Enter the Hugging Face id of the model:")
-        
+
+        if huggingface_id != "":
+            first_model = get_model(huggingface_id)
+            if first_model is not None:
+                print(first_model)
+                print(first_model.id)
+                filepath = download_model_and_make_source_code(first_model,first_model.id,userdatadir=user_data_dir)
+                uploaded_files += [filepath]
+
         # Check if `main` is already running
         if "is_main_running" not in st.session_state:
             st.session_state.is_main_running = False
@@ -137,7 +149,7 @@ def import_page():
         if "is_processing" not in st.session_state:
             st.session_state.is_processing = False
 
-        if submit_button and uploaded_files:
+        if (submit_button or huggingface_id) and uploaded_files:
             if not user_ann_name:
                 st.error("Please enter a neural network architecture before uploading files.")
             else:

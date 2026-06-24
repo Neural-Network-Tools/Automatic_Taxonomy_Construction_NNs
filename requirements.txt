@@ -8,7 +8,7 @@
 -r "requirements/requirements-front_end.txt"
 -r "requirements/requirements-taxonomy_viz.txt"
 -r "src/mcp/requirements.txt"
-
+huggingface_hub
 # -r "requirements/requirements-graph_viz.txt"
 
 

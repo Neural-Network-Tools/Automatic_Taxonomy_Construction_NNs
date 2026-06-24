@@ -59,6 +59,66 @@ class _CodeProcessor(ast.NodeVisitor):
         self.model_name: str = None
         self.pytorch_module_names: list = [] # names of the different networks within a pytorch file
         self.module_namespace = self.extract_namespace(file_path)
+        
+        self.pipeline_import_names = set()
+        self.pipeline_vars = set()
+        self.pipeline_model_assignments = []
+    def _expr_name(self, node):
+        if isinstance(node, ast.Name):
+            return node.id
+
+        if isinstance(node, ast.Attribute):
+            base = self._expr_name(node.value)
+            if base:
+                return f"{base}.{node.attr}"
+            return node.attr
+
+        return None
+
+    def visit_ImportFrom(self, node):
+        # from transformers import pipeline
+        # from transformers import pipeline as hf_pipeline
+        if node.module == "transformers":
+            for alias in node.names:
+                if alias.name == "pipeline":
+                    self.pipeline_import_names.add(alias.asname or alias.name)
+
+        self.generic_visit(node)
+
+    def visit_Assign(self,node):
+        
+        # pipe = pipeline(...)
+        # pipeline = pipeline(...)
+        if isinstance(node.value, ast.Call):
+            call_name = self._expr_name(node.value.func)
+
+            if call_name in self.pipeline_import_names:
+                for target in node.targets:
+                    target_name = self._expr_name(target)
+                    if target_name:
+                        self.pipeline_vars.add(target_name)
+
+        # model = pipe.model
+        # model = pipeline.model
+        if isinstance(node.value, ast.Attribute):
+            value_name = self._expr_name(node.value)
+
+            if value_name and value_name.endswith(".model"):
+                base_name = value_name.rsplit(".", 1)[0]
+
+                if base_name in self.pipeline_vars:
+                    for target in node.targets:
+                        target_name = self._expr_name(target)
+                        if target_name:
+                            self.pipeline_model_assignments.append({
+                                "target": target_name,
+                                "source": value_name,
+                                "pipeline_var": base_name,
+                                "lineno": node.lineno,
+                                "end_lineno": getattr(node, "end_lineno", node.lineno),
+                            })
+
+        self.generic_visit(node)
 
     def visit_Module(self, node):
         """
@@ -290,7 +350,20 @@ class CodeExtractor():
                     #     for child in ast.iter_child_nodes(node):
                     #         child.parent = node  # set reference nodes (ex. node.parent)
                     processor.visit(tree)
-
+                    for i in processor.module_namespace:
+                        logger.info(type(i))
+                        logger.info(type(processor.module_namespace[i]))
+                        
+                    for model in processor.pipeline_model_assignments:
+                        obj = processor.module_namespace.get(model['target'])
+                        if isinstance(obj, nn.Module) and obj:
+                            logger.info('found huggingface model')
+                            processor.pytorch_module_names.append(type(obj).__name__)
+                            processor.model_name = type(obj).__name__
+                            
+                            graph = extract_graph(obj)
+                            processor.pytorch_model_graphs[type(obj).__name__] = graph
+                    
                     if not processor.model_name:
                         base = os.path.basename(file)
                         processor.model_name = os.path.splitext(base)[0]

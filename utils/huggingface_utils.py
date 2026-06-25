@@ -13,6 +13,10 @@ def get_model(searchstring):
     else: 
         return None
 
+def get_models(searchstring):
+    models = huggingface_list_models(search=searchstring, limit=10, sort="downloads") #,filter=[task, "pytorch", "safetensors"],sort="downloads")
+    models = list(models)
+    return models
 def download_model_and_make_source_code(hfmodel,modelname="somemodel",device='cpu',userdatadir='./tmp'):
     # downloads model as pytorch 
     hf_directory = Path(userdatadir)

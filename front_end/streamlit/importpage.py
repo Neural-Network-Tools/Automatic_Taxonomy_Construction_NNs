@@ -6,14 +6,18 @@ import os
 from utils.exception_utils import *
 
 from utils.logger_util import get_logger
-from utils.huggingface_utils import get_model, download_model_and_make_source_code
+from utils.huggingface_utils import get_model, download_model_and_make_source_code, get_models
 from neo4j_connection import get_neo4j_credentials, get_driver
 
 logger = get_logger("importpage", max_logs=3)
+ITEMS_PER_PAGE = 5
 
 # A global list to store success message placeholders
 success_placeholders = []
 st.session_state.first_import = True
+
+if "page_number" not in st.session_state:
+    st.session_state.page_number = 0
 
 def show_error(e):
     try:
@@ -130,16 +134,42 @@ def import_page():
                 use_user_owl = st.checkbox("Check to append to ontology", value=True)
 
         st.markdown("<h1 style='font-family: Arial, sans-serif; color: #fb8c00;'>Upload From Hugging Face</h1>", unsafe_allow_html=True)
+        huggingface_submit_button = None
+        huggingface_search = st.text_input("Enter Your Search For Huggingface: ")
+        if huggingface_search != "":
+            huggingface_search = get_models(huggingface_search)
+            model_list = [search.id for search in huggingface_search]
+            model_map = {search.id:search for search in huggingface_search}
+            start_idx = st.session_state.page_number * ITEMS_PER_PAGE
+            end_idx = start_idx + ITEMS_PER_PAGE
+            page_items = model_list[start_idx:end_idx]
+            #for model in page_items:
+            #    st.code(model)
+            
 
-        huggingface_id = st.text_input("Enter the Hugging Face id of the model:")
+            with st.form(key="huggingface-search"):
+                selected_model = st.radio(
+                    label="Available Hugging Face Models",
+                    options=page_items,
+                    index=0  # Defaults to the first model in the list
+                )
 
-        if huggingface_id != "":
-            first_model = get_model(huggingface_id)
-            if first_model is not None:
-                print(first_model)
-                print(first_model.id)
-                filepath = download_model_and_make_source_code(first_model,first_model.id,userdatadir=user_data_dir)
-                uploaded_files += [filepath]
+
+                huggingface_submit_button = st.form_submit_button(label="Process Selected Models")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("⬅️ Previous Page") and st.session_state.page_number > 0:
+                    st.session_state.page_number -= 1
+                    st.rerun()
+
+            with col2:
+                if st.button("Next Page ➡️") and end_idx < len(model_list):
+                    st.session_state.page_number += 1
+                    st.rerun()
+        if huggingface_submit_button:
+            selected_model = model_map[selected_model]
+            filepath = download_model_and_make_source_code(selected_model,selected_model.id,userdatadir=user_data_dir)
+            uploaded_files += [filepath]
 
         # Check if `main` is already running
         if "is_main_running" not in st.session_state:
@@ -149,7 +179,7 @@ def import_page():
         if "is_processing" not in st.session_state:
             st.session_state.is_processing = False
 
-        if (submit_button or huggingface_id) and uploaded_files:
+        if (submit_button or huggingface_submit_button) and uploaded_files:
             if not user_ann_name:
                 st.error("Please enter a neural network architecture before uploading files.")
             else:
